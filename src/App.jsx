@@ -1,9 +1,8 @@
-import { signInWithPopup } from 'firebase/auth'
-import React, { useEffect } from 'react'
-import { auth, googleProvider } from '../utils/firebase'
+import { useEffect } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '../utils/firebase'
 import api from '../utils/axios'
 import Home from './pages/Home'
-import getCurrentUser from './features/getCurrentUser'
 import { useDispatch } from 'react-redux'
 import { setUserdata } from './redux/userSlice'
 
@@ -11,12 +10,28 @@ function App() {
 
 const dispatch=useDispatch()
 useEffect(()=>{
-  const getUser=async ()=>{
-    const data=await getCurrentUser()
-    dispatch(setUserdata(data))
+  let isMounted = true
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (!firebaseUser) {
+      if (isMounted) dispatch(setUserdata(null))
+      return
+    }
+
+    try {
+      const token = await firebaseUser.getIdToken()
+      const { data } = await api.post("/api/auth/login", { token })
+      if (isMounted) dispatch(setUserdata(data))
+    } catch (error) {
+      console.error("Unable to restore the authenticated session", error)
+      if (isMounted) dispatch(setUserdata(null))
+    }
+  })
+
+  return () => {
+    isMounted = false
+    unsubscribe()
   }
-  getUser()
-},[])
+},[dispatch])
 
   return (
    <>

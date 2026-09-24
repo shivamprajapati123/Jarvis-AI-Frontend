@@ -1,5 +1,4 @@
 import { signInWithPopup } from "firebase/auth";
-import React from "react";
 import { auth, googleProvider } from "../../utils/firebase";
 import api from "../../utils/axios";
 import { FcGoogle } from "react-icons/fc";
@@ -24,9 +23,7 @@ function Home() {
   const googleLogin = async () => {
     const data = await signInWithPopup(auth, googleProvider);
     const token = await data.user.getIdToken();
-    console.log(token);
     await handleLogin(token);
-    console.log(data);
   };
   return (
     <div className="app-shell h-screen flex bg-[#0d0f14] text-white overflow-hidden">
