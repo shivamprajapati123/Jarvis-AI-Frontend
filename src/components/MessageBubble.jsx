@@ -5,12 +5,14 @@ import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { cancelSpeech, speakText } from "../utils/speech"
+import { cancelSpeech, isSpeechActive, speakText, subscribeSpeechState } from "../utils/speech"
 function MessageBubble({ role, content, images }) {
   const isUser = role === "user"
   const [lightBox, setLightBox] = useState(null)
   const [copiedCode, setCopiedCode] = useState("")
-  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(isSpeechActive)
+
+  React.useEffect(() => subscribeSpeechState(setIsSpeaking), [])
 
   const copyCode = async (code) => {
     await navigator.clipboard.writeText(code)
@@ -187,12 +189,10 @@ function MessageBubble({ role, content, images }) {
             onClick={() => {
               if (isSpeaking) {
                 cancelSpeech()
-                setIsSpeaking(false)
                 return
               }
               const started = speakText(content)
-              setIsSpeaking(started)
-              if (started) window.speechSynthesis.onend = () => setIsSpeaking(false)
+              if (!started) setIsSpeaking(false)
             }}
             className="mt-1 inline-flex items-center gap-1 rounded-md p-1 text-slate-500 transition hover:bg-white/[0.06] hover:text-slate-200"
             aria-label={isSpeaking ? "Speaking response" : "Speak response"}

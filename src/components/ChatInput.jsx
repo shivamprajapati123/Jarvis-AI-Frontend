@@ -7,7 +7,7 @@ import { createConversation } from '../features/createConversation'
 import { addConversation, setConvTitle, setSelectedConversation } from '../redux/conversationSlice'
 import { updateConversation } from '../features/updateConversation'
 import { useRef } from 'react'
-import { cancelSpeech, getSpeechVoices, selectSpeechVoice, speakText } from "../utils/speech"
+import { cancelSpeech, getSpeechVoices, isSpeechActive, selectSpeechVoice, speakText, subscribeSpeechState } from "../utils/speech"
 
 
 function ChatInput() {
@@ -19,7 +19,7 @@ function ChatInput() {
   const [listening, setListening] = useState(false)
   const [voiceMode, setVoiceMode] = useState(false)
   const [availableVoices, setAvailableVoices] = useState([])
-  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(isSpeechActive)
   const recognitionRef = useRef(null)
   const voiceModeRef = useRef(false)
   const speakingRef = useRef(false)
@@ -27,6 +27,8 @@ function ChatInput() {
   const fileRef = useRef(null)
   const textareaRef = useRef(null)
   const dispatch = useDispatch()
+
+  useEffect(() => subscribeSpeechState(setIsSpeaking), [])
 
   useEffect(() => {
     const loadVoices = () => setAvailableVoices(getSpeechVoices())
@@ -109,7 +111,6 @@ function ChatInput() {
     const nextVoiceMode = !voiceMode
     voiceModeRef.current = nextVoiceMode
     setVoiceMode(nextVoiceMode)
-    window.speechSynthesis?.cancel()
 
     if (!nextVoiceMode) {
       clearTimeout(speechTimerRef.current)
@@ -180,23 +181,22 @@ function ChatInput() {
     dispatch(addMessage({ role: "assistant", content: data.answer, images: data.images }))
     if (voiceModeRef.current && data.answer) {
       speakingRef.current = true
-      const utterance = new SpeechSynthesisUtterance(data.answer.replace(/[*#`_[\]]/g, ""))
-      utterance.voice = selectSpeechVoice(availableVoices)
-      utterance.rate = 1
-      utterance.onstart = () => {
-        setListening(true)
-        try {
-          recognitionRef.current?.start()
-        } catch {
-          // Recognition may already be active.
-        }
-      }
-      utterance.onend = () => {
-        speakingRef.current = false
-        setIsSpeaking(false)
-      }
-      setIsSpeaking(true)
-      window.speechSynthesis?.speak(utterance)
+      speakText(data.answer, {
+        voice: selectSpeechVoice(availableVoices),
+        rate: 1,
+        pitch: 1,
+        onstart: () => {
+          setListening(true)
+          try {
+            recognitionRef.current?.start()
+          } catch {
+            // Recognition may already be active.
+          }
+        },
+        onend: () => {
+          speakingRef.current = false
+        },
+      })
     }
     console.log(data)
   }
@@ -354,13 +354,12 @@ function ChatInput() {
               onClick={() => {
                 if (isSpeaking) {
                   cancelSpeech()
-                  setIsSpeaking(false)
                   return
                 }
                 const started = speakText(messages?.filter((message) => message.role === "assistant").at(-1)?.content)
-                setIsSpeaking(started)
-                if (started) window.speechSynthesis.onend = () => setIsSpeaking(false)
+                if (!started) setIsSpeaking(false)
               }}
+              aria-pressed={isSpeaking}
               className={`flex h-8 items-center justify-center gap-1 rounded-lg px-2 text-[11px] transition hover:bg-white/[0.05] ${isSpeaking ? "text-red-400" : "text-slate-600 hover:text-slate-300"}`}
               title={isSpeaking ? "Stop speaking" : "Speak latest response"}
               aria-label={isSpeaking ? "Stop speaking" : "Speak latest response"}
@@ -380,6 +379,8 @@ function ChatInput() {
             </button>
             <button
               onClick={toggleMic}
+              aria-pressed={voiceMode}
+              aria-label={voiceMode ? "Turn off voice input" : "Turn on voice input"}
               className={`flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150 cursor-pointer ${voiceMode ?"bg-indigo-500 text-white":"text-slate-600 hover:bg-white/[0.05]" }`}>
              {listening ? <Mic size={16} /> : <MicOff size={16}/>}
             </button>

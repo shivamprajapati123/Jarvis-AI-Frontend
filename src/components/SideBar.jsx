@@ -691,7 +691,7 @@ function SideBar() {
         sidebar bg-[#0d0f14] border-r border-white/[0.06] relative
         transition-transform duration-250
         ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-        style={{ width: `${sidebarWidth}px` }}
+        style={{ "--sidebar-width": `${sidebarWidth}px` }}
       >
         <div className="flex flex-col h-full">
           <div
