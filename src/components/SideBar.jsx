@@ -812,7 +812,7 @@ function SideBar() {
                       event.stopPropagation();
                       setOpenMenuId(openMenuId === conv._id ? null : conv._id);
                     }}
-                    className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md text-slate-500 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-white/[0.1] hover:text-slate-200 transition-all"
+                    className="shrink-0 flex items-center justify-center w-6 h-6 rounded-md text-slate-500 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-white/[0.1] hover:text-slate-200 transition-all"
                     aria-label={`Actions for ${conv?.title || "conversation"}`}
                   >
                     <MoreHorizontal size={15} />
