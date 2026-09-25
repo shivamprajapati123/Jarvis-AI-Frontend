@@ -387,7 +387,7 @@ function ChatInput() {
           </div>
           <button
             disabled={!value && isLoading}
-            onClick={handleSendMessage}
+            onClick={() => handleSendMessage()}
             className={`flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer transition-all duration-150 ${value.trim() ? "bg-linear-to-br from-indigo-500 to-violet-700 hover:opacity-90 text-white" : "bg-white/[0.05] text-slate-600 cursor-not-allowed"}`}>
           <Send size={15} />
         </button>
