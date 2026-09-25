@@ -366,7 +366,8 @@
 
 // export default SideBar;
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { signOut } from "firebase/auth";
 import {
   Coins,
   LogOut,
@@ -402,6 +403,7 @@ import BillingDrawer from "./BillingDrawer";
 import { updateConversation } from "../features/updateConversation";
 import { deleteConversation } from "../features/deleteConversation";
 import { setArtifacts, setMessages } from "../redux/messageSlice";
+import { auth } from "../../utils/firebase";
 
 function SideBar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -423,6 +425,22 @@ function SideBar() {
   const { userData } = useSelector((state) => state.user);
 
   const userId = userData?._id || userData?.userId;
+
+  const handleLogout = async () => {
+    try {
+      await logOut();
+    } catch (error) {
+      console.error("Unable to close the server session", error);
+    } finally {
+      await signOut(auth);
+      dispatch(setUserdata(null));
+      dispatch(setConversations([]));
+      dispatch(setSelectedConversation(null));
+      dispatch(setMessages([]));
+      dispatch(setArtifacts([]));
+      setMobileOpen(false);
+    }
+  };
 
   // --------------------------------------------------
   // GET CONVERSATIONS
@@ -658,6 +676,15 @@ function SideBar() {
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-150 bg-transparent border-none cursor-pointer"
+          aria-label="Sign out"
+          title="Sign out"
+        >
+          <LogOut size={16} />
+        </button>
       </div>
     );
   }
@@ -858,7 +885,7 @@ function SideBar() {
           {/* User section */}
           <div className="px-3.5 py-3.5">
             {userData ? (
-              <div className="flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2.5 hover:bg-white/[0.05] transition-colors duration-150">
+              <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 hover:bg-white/[0.05] transition-colors duration-150">
                 {/* Avatar */}
                 <div className="relative shrink-0">
                   {userData?.avatar && !imageError ? (
@@ -898,13 +925,13 @@ function SideBar() {
 
                   {/* Logout */}
                   <button
-                    className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-slate-600 cursor-pointer hover:bg-white/[0.08] hover:text-slate-400 transition-all duration-150"
-                    onClick={() => {
-                      logOut();
-                      dispatch(setUserdata(null));
-                    }}
+                    type="button"
+                    className="flex items-center gap-1.5 h-8 px-2 rounded-[7px] border border-white/[0.08] bg-transparent text-slate-400 cursor-pointer hover:bg-red-500/10 hover:text-red-300 transition-all duration-150"
+                    onClick={handleLogout}
+                    aria-label="Sign out"
                   >
                     <LogOut size={16} />
+                    <span className="text-[11px] font-medium">Sign out</span>
                   </button>
                 </div>
               </div>

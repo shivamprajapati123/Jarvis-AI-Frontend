@@ -26,7 +26,7 @@ function Home() {
     await handleLogin(token);
   };
   return (
-    <div className="app-shell h-screen flex bg-[#0d0f14] text-white overflow-hidden">
+    <div className="app-shell h-[100dvh] min-h-[320px] flex bg-[#0d0f14] text-white overflow-hidden">
       <SideBar />
       <ChatArea />
       <Artifact />
