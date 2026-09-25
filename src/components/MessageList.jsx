@@ -1,5 +1,5 @@
 import { ArrowDown } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setPendingPrompt } from '../redux/messageSlice'
 import MessageBubble from './MessageBubble'
@@ -8,6 +8,7 @@ import LoadingAnimation from './LoadingAnimation'
 function MessageList() {
     const {selectedConversation}=useSelector(state=>state.conversation)
     const {messages,isLoading}=useSelector(state=>state.message)
+    const {userData}=useSelector(state=>state.user)
     const dispatch=useDispatch()
    const listRef=useRef(null)
    const bottemRef=useRef(null)
@@ -29,7 +30,7 @@ function MessageList() {
         }
         updateScrollButton()
       })
-   },[messages?.length,isLoading])
+   },[messages,isLoading])
 
 
   return (
@@ -44,19 +45,39 @@ function MessageList() {
                <span />
              </div>
            </div>
-           <div className='welcome-copy flex flex-col items-center gap-1.5'>
+           <div className='welcome-copy flex max-w-[min(92vw,560px)] flex-col items-center gap-2'>
+               {userData && (
+                 <div className="mb-1 flex flex-col items-center gap-1.5">
+                   <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-indigo-200/80">
+                     Welcome back
+                   </p>
+                   <p className="max-w-[88vw] truncate text-[15px] font-medium tracking-wide text-slate-200">
+                     {userData?.name || userData?.email || "User"}
+                   </p>
+                   <p className="text-[10px] font-semibold tracking-[0.34em] text-slate-500">
+                     JARVIS AI
+                   </p>
+                 </div>
+               )}
+               <div className="mt-1 h-px w-12 bg-gradient-to-r from-transparent via-cyan-300/50 to-transparent" />
                <div className="jarvis-status"><span /> READY WHEN YOU ARE</div>
-               <h1 className='text-[20px] font-semibold text-slate-200 tracking-tight'>What will we create?</h1>
-               <p className='text-[15px] font-semibold text-slate-400 tracking-tight'>Your ideas, with a little more momentum.</p>
-               <p className='text-[13px] text-slate-600 max-w-[320px] leading-relaxed'>Choose a starting point below, or tell Jarvis what is on your mind.</p>
+               <h1 className='text-[clamp(1.35rem,4vw,1.75rem)] font-semibold text-slate-100 tracking-tight'>What will we create?</h1>
+               <p className='text-[14px] font-medium text-slate-400 tracking-tight'>Your ideas, with a little more momentum.</p>
+               <p className='max-w-[340px] text-[13px] text-slate-500 leading-relaxed'>Choose a starting point, or tell Jarvis what is on your mind.</p>
            </div>
            <div className='prompt-grid mt-2'>
             {[
-              ["Build", "a polished dashboard", "✦"],
-              ["Explore", "a complex idea", "◎"],
-              ["Create", "a launch plan", "↗"],
+              ["Explore", "Today's news and highlights", "◎"],
+              ["Coding", "A fun fact about programming", "</>"],
+              ["Weather", "India's current temperature", "☀"],
             ].map(([label, text, icon])=>(
-              <button key={text} onClick={()=>dispatch(setPendingPrompt(`${label} ${text}`))} className='jarvis-prompt'>
+              <button key={text} onClick={()=>dispatch(setPendingPrompt(
+                label === "Explore"
+                  ? "What are today's top news headlines?"
+                  : label === "Coding"
+                    ? "Tell me a fun and useful programming fact."
+                    : "What is the current temperature and weather condition in India?"
+              ))} className='jarvis-prompt'>
                 <span className="prompt-icon">{icon}</span>
                 <span><strong>{label}</strong><small>{text}</small></span>
               </button>

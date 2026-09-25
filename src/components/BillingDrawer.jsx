@@ -1,4 +1,3 @@
-import React from 'react'
 import { AnimatePresence, motion } from "motion/react"
 import { Crown, X } from 'lucide-react'
 import { useSelector } from 'react-redux'
@@ -51,7 +50,7 @@ function BillingDrawer({ open, onClose }) {
                     animate={{ x: 0 }}
                     exit={{ x: "100%" }}
                     transition={{ duration: .25 }}
-                    className="fixed right-0 top-0 z-50 h-screen w-[380px] bg-[#0f1117] border-l border-white/10 shadow-2xl flex flex-col"
+                    className="fixed right-0 top-0 z-50 h-screen w-[min(380px,100vw)] bg-[#0f1117] border-l border-white/10 shadow-2xl flex flex-col"
 
                 >
 
