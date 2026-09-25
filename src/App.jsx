@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../utils/firebase'
-import api from '../utils/axios'
+import { loginWithRetry } from '../utils/axios'
 import Home from './pages/Home'
 import { useDispatch } from 'react-redux'
 import { setUserdata } from './redux/userSlice'
@@ -19,7 +19,7 @@ useEffect(()=>{
 
     try {
       const token = await firebaseUser.getIdToken()
-      const { data } = await api.post("/api/auth/login", { token })
+      const { data } = await loginWithRetry(token)
       if (isMounted) dispatch(setUserdata(data))
     } catch (error) {
       console.error("Unable to restore the authenticated session", error)

@@ -1,6 +1,6 @@
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "../../utils/firebase";
-import api from "../../utils/axios";
+import { loginWithRetry } from "../../utils/axios";
 import { FcGoogle } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserdata } from "../redux/userSlice";
@@ -33,7 +33,7 @@ function Home() {
   }, [accountOpen]);
   const handleLogin = async (token) => {
     try {
-      const { data } = await api.post("/api/auth/login", { token });
+      const { data } = await loginWithRetry(token);
       dispatch(setUserdata(data));
     } catch (error) {
       console.log(error);
