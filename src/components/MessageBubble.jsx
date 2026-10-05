@@ -1,4 +1,4 @@
-import { Check, Copy, ExternalLink, FileX2, Square, Volume2, X } from 'lucide-react'
+import { Check, Copy, ExternalLink, Square, Volume2, X } from 'lucide-react'
 import React from 'react'
 import { useState } from 'react'
 import Markdown from 'react-markdown'
@@ -8,8 +8,10 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { cancelSpeech, isSpeechActive, speakText, subscribeSpeechState } from "../utils/speech"
 function MessageBubble({ role, content, images }) {
   const isUser = role === "user"
+  const isGeneratedImage = content?.startsWith("Generated image for:")
   const [lightBox, setLightBox] = useState(null)
   const [copiedCode, setCopiedCode] = useState("")
+  const [failedImages, setFailedImages] = useState({})
   const [isSpeaking, setIsSpeaking] = useState(isSpeechActive)
 
   React.useEffect(() => subscribeSpeechState(setIsSpeaking), [])
@@ -36,17 +38,27 @@ function MessageBubble({ role, content, images }) {
 
 
         {images.length > 0 && (
-          <div className='flex flex-wrap gap-3 mt-4'>
-            {images.map((img, i) => (
-              <img
-                key={i}
-                src={img}
-                onClick={() => setLightBox(img)}
-                loading="lazy"
-                onError={(e) => e.currentTarget.remove()}
-                className="w-40 h-28 rounded-xl object-cover border border-white/10 cursor-zoom-in hover:opacity-90 transition"
-
-              />
+          <div className={`my-3 flex gap-3 ${isGeneratedImage ? "flex-col" : "flex-wrap"}`}>
+            {images.map((img) => (
+              failedImages[img] ? (
+                <div key={img} className="rounded-xl border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-400">
+                  The image provider could not load this image.
+                  <a href={img} target="_blank" rel="noreferrer" className="ml-1 text-indigo-400 underline">
+                    Try opening it directly
+                  </a>
+                </div>
+              ) : (
+                <img
+                  key={img}
+                  src={img}
+                  alt="AI-generated image"
+                  onClick={() => setLightBox(img)}
+                  loading="eager"
+                  decoding="async"
+                  onError={() => setFailedImages((current) => ({ ...current, [img]: true }))}
+                  className={`${isGeneratedImage ? "max-h-[320px] w-full max-w-sm object-contain" : "h-28 w-40 object-cover"} rounded-xl border border-white/10 cursor-zoom-in hover:opacity-95 transition`}
+                />
+              )
             ))}
           </div>
         )}
@@ -95,9 +107,13 @@ function MessageBubble({ role, content, images }) {
 
             ),
 
-            a: ({ href, children }) => (
+            a: ({ href, children }) => {
+              const downloadHref = href?.startsWith("/api/agent/download/") && import.meta.env.VITE_SERVER_URL
+                ? new URL(href, import.meta.env.VITE_SERVER_URL).toString()
+                : href
 
-              <a href={href}
+              return (
+              <a href={downloadHref}
                 target="_blank"
                 rel="noreferrer"
                 className="text-indigo-400 underline inline-flex items-center gap-1"
@@ -105,8 +121,8 @@ function MessageBubble({ role, content, images }) {
                 {children}
                 <ExternalLink size={14} />
               </a>
-
-            ),
+              )
+            },
             code: ({ className, children }) => {
               const value = String(children).trim()
               
@@ -167,10 +183,12 @@ function MessageBubble({ role, content, images }) {
             return (
               <img
                 src={src}
+                alt="Image in assistant response"
                 onClick={() => setLightBox(src)}
-                loading="lazy"
-                onError={(e) => e.currentTarget.remove()}
-                className="w-40 h-28 rounded-xl object-cover border border-white/10 cursor-zoom-in hover:opacity-90 transition"
+                loading="eager"
+                decoding="async"
+                onError={() => setFailedImages((current) => ({ ...current, [src]: true }))}
+                className="max-h-[min(65vh,560px)] w-full max-w-xl rounded-xl object-contain border border-white/10 cursor-zoom-in hover:opacity-95 transition"
               />
             )
           }

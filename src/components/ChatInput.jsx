@@ -156,7 +156,6 @@ function ChatInput() {
     }
 
 
-    console.log(selectedFile)
     const formData = new FormData()
     formData.append("prompt", promptValue.trim())
     formData.append("conversationId", conversation?._id)
@@ -198,7 +197,6 @@ function ChatInput() {
         },
       })
     }
-    console.log(data)
   }
 
   useEffect(() => {
@@ -262,6 +260,7 @@ function ChatInput() {
             const Icon = agent.icon
             return (
               <div
+                key={agent.id}
                 onClick={() => setSelectedAgent(agent.label)}
                 className={`
             flex-shrink-0
